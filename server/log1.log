@@ -1,0 +1,16 @@
+2016-05-17 22:28:40,773 - other        - INFO     - main thread started
+2016-05-17 22:28:41,154 - network      - INFO     - NetworkReceiverThread thread started
+2016-05-17 22:28:41,154 - network      - INFO     - NetworkThread thread started
+2016-05-17 22:28:41,154 - logic        - INFO     - LogicThread thread started
+2016-05-17 22:28:41,957 - logic        - INFO     - new client: 127.0.0.1
+2016-05-17 22:28:54,904 - distribute   - INFO     - DistributeThread thread has started
+2016-05-17 22:28:54,907 - distribute   - INFO     - distributing file test.ui
+2016-05-17 22:28:54,907 - distribute   - INFO     - calculated block number is 354
+2016-05-17 22:28:59,884 - distribute   - ERROR    - an exception was raised. traceback:
+Traceback (most recent call last):
+  File "C:\Users\omer\Google Drive\פרויקט בסייבר\פרויקט\server\utils.py", line 22, in inner
+    return function(*args, **kwargs)
+  File "C:\Users\omer\Google Drive\פרויקט בסייבר\פרויקט\server\distribute.py", line 229, in run
+    client=self.clients[data_client_pointer],
+IndexError: list index out of range
+2016-05-17 22:47:46,384 - logic        - INFO     - new client: 127.0.0.1
