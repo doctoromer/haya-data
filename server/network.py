@@ -56,7 +56,7 @@ class NetworkReceiverThread(threading.Thread):
         self.sockets = {}
 
         # dict to store incomplete messages
-        # keys are sockets, values ar pairs of:
+        # keys are sockets, values are pairs of:
         # (received data (str), number of missing bytes (int))
         self.messages = {}
 
@@ -81,7 +81,12 @@ class NetworkReceiverThread(threading.Thread):
 
         # if connection is closed, remove it
         if received == '':
-            ip = sock.getpeername()[0]
+            # inverse lookup of ip matching the sockt in the dict self.sockets
+            ip = (key for key, value in self.sockets.items()
+                  if value == sock).next()
+
+            self.logger.debug('client %s disconnected' % ip)
+            # announce the disconnected socket and remove it
             message = protocol.thread.disconnected(
                 client=ip)
             self.logic_queue.put(message)
@@ -102,7 +107,7 @@ class NetworkReceiverThread(threading.Thread):
         while receiver_running:
             # test which socket sent data
             all_sockets = self.sockets.values() + [self.server]
-            recv_from_sockets, _, _ = select.select(all_sockets, [], [], 0.6)
+            recv_from_sockets, _, _ = select.select(all_sockets, [], [], 0.2)
 
             for s in recv_from_sockets:
                 # if new client trying to connect, accept it
@@ -110,16 +115,17 @@ class NetworkReceiverThread(threading.Thread):
                     new_socket, address = s.accept()
                     ip = new_socket.getpeername()[0]
                     self.sockets[ip] = new_socket
+
                     message = protocol.thread.new_socket(
                         socket=new_socket)
                     self.network_queue.put(message)
 
+                    self.logger.debug('new connection to client %s' % ip)
                 # if a connected client send a message, receive it
                 else:
                     # if this is a part of a message that alreay begun to send,
                     # add it to the messages dict
                     if s in self.messages:
-
                         content, missing_bytes = self.messages[s]
                         received = self.receive(s, missing_bytes)
 
