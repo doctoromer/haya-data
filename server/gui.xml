@@ -1,0 +1,897 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk+" version="2.24"/>
+  <!-- interface-naming-policy project-wide -->
+  <object class="GtkAdjustment" id="block_number_adj">
+    <property name="lower">5</property>
+    <property name="upper">1000</property>
+    <property name="value">5</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkTreeStore" id="clients_blocks_store">
+    <columns>
+      <!-- column-name type -->
+      <column type="gchararray"/>
+      <!-- column-name file_name -->
+      <column type="gchararray"/>
+      <!-- column-name block_number -->
+      <column type="gint"/>
+    </columns>
+  </object>
+  <object class="GtkTreeStore" id="clients_store">
+    <columns>
+      <!-- column-name client -->
+      <column type="gchararray"/>
+      <!-- column-name total_space -->
+      <column type="guint64"/>
+      <!-- column-name used_space -->
+      <column type="guint64"/>
+    </columns>
+  </object>
+  <object class="GtkAdjustment" id="duplication_adj">
+    <property name="lower">1</property>
+    <property name="upper">20</property>
+    <property name="value">1</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkTreeStore" id="file_status_blocks_store">
+    <columns>
+      <!-- column-name type -->
+      <column type="gchararray"/>
+      <!-- column-name block_number -->
+      <column type="gint"/>
+      <!-- column-name client -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkTreeStore" id="file_system_store">
+    <columns>
+      <!-- column-name file_name -->
+      <column type="gchararray"/>
+      <!-- column-name file_size -->
+      <column type="gint"/>
+      <!-- column-name block_number -->
+      <column type="gint"/>
+      <!-- column-name duplication_level -->
+      <column type="gint"/>
+      <!-- column-name validation_level -->
+      <column type="gint"/>
+    </columns>
+  </object>
+  <object class="GtkAdjustment" id="validation_adj">
+    <property name="lower">2</property>
+    <property name="upper">50</property>
+    <property name="value">2</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkWindow" id="upload_window">
+    <property name="can_focus">False</property>
+    <signal name="delete-event" handler="on_upload_window_delete_event" swapped="no"/>
+    <child>
+      <object class="GtkVBox" id="upload_vbox">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="spacing">10</property>
+        <child>
+          <object class="GtkFileChooserWidget" id="upload_file_chooser">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="orientation">vertical</property>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkHBox" id="upload_settings_vbox">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkVBox" id="upload_settings_controllers_vbox">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkHScale" id="block_number_scale">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="adjustment">block_number_adj</property>
+                    <property name="round_digits">0</property>
+                    <property name="digits">0</property>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkHScale" id="validation_scale">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="adjustment">validation_adj</property>
+                    <property name="round_digits">0</property>
+                    <property name="digits">0</property>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkHScale" id="duplication_scale">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="adjustment">duplication_adj</property>
+                    <property name="round_digits">0</property>
+                    <property name="digits">0</property>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkVBox" id="upload_settings_labels_vbox">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkLabel" id="upload_block_number_label">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">block number</property>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="upload_validation_level_label">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="xalign">0</property>
+                    <property name="label" translatable="yes">validation level</property>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="upload_duplication_level_label">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="xalign">0</property>
+                    <property name="label" translatable="yes">duplication level</property>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="padding">5</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkHBox" id="upload_buttons_vbox">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="spacing">30</property>
+            <child>
+              <object class="GtkButton" id="upload_ok_button">
+                <property name="label" translatable="yes">OK</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <signal name="clicked" handler="on_upload_ok_button_clicked" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="upload_cancel_button">
+                <property name="label" translatable="yes">cancel</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <signal name="clicked" handler="on_upload_cancel_button_clicked" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="padding">10</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkTreeStore" id="waiting_files_store">
+    <columns>
+      <!-- column-name type -->
+      <column type="gchararray"/>
+      <!-- column-name file_name -->
+      <column type="gchararray"/>
+      <!-- column-name file_size -->
+      <column type="gint"/>
+      <!-- column-name block_number -->
+      <column type="gint"/>
+      <!-- column-name duplication_level -->
+      <column type="gint"/>
+      <!-- column-name validation_level -->
+      <column type="gint"/>
+    </columns>
+  </object>
+  <object class="GtkWindow" id="main_window">
+    <property name="can_focus">False</property>
+    <signal name="destroy" handler="gtk_main_quit" swapped="no"/>
+    <child>
+      <object class="GtkNotebook" id="main_notebook">
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="tab_border">0</property>
+        <child>
+          <object class="GtkVBox" id="file_system_vbox">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkToolbar" id="file_system_toolbar">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkToolButton" id="file_system_download">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">download</property>
+                    <property name="use_underline">True</property>
+                    <property name="stock_id">gtk-go-down</property>
+                    <signal name="clicked" handler="on_file_system_download_clicked" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToolButton" id="file_system_upload">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">upload</property>
+                    <property name="use_underline">True</property>
+                    <property name="stock_id">gtk-go-up</property>
+                    <signal name="clicked" handler="on_file_system_upload_clicked" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToolButton" id="file_system_delete">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">delete</property>
+                    <property name="use_underline">True</property>
+                    <property name="stock_id">gtk-cancel</property>
+                    <signal name="clicked" handler="on_file_system_delete_clicked" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkScrolledWindow" id="file_system_scrolled_window">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="hscrollbar_policy">never</property>
+                <property name="vscrollbar_policy">automatic</property>
+                <child>
+                  <object class="GtkTreeView" id="file_system_tree_view">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="model">file_system_store</property>
+                    <property name="enable_grid_lines">horizontal</property>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="file_system_file_name_column">
+                        <property name="title" translatable="yes">file name</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="file_system_file_name_cell">
+                            <property name="background">#EEE8AA</property>
+                          </object>
+                          <attributes>
+                            <attribute name="text">0</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="file_system_size_column">
+                        <property name="title" translatable="yes">file size</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="file_system_size_cell">
+                            <property name="background">#FFEFD5</property>
+                          </object>
+                          <attributes>
+                            <attribute name="text">1</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="file_system_block_number_column">
+                        <property name="title" translatable="yes">block number</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="file_system_block_number_cell">
+                            <property name="background">#EEE8AA</property>
+                          </object>
+                          <attributes>
+                            <attribute name="text">2</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="file_system_duplication_column">
+                        <property name="title" translatable="yes">duplication level</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="file_system_duplication_cell">
+                            <property name="background">#FFEFD5</property>
+                          </object>
+                          <attributes>
+                            <attribute name="text">3</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="file_system_validation_column">
+                        <property name="title" translatable="yes">validation_level</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="file_system_validation_cell">
+                            <property name="background">#EEE8AA</property>
+                          </object>
+                          <attributes>
+                            <attribute name="text">4</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+        </child>
+        <child type="tab">
+          <object class="GtkLabel" id="file_system_label">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="ypad">2</property>
+            <property name="label" translatable="yes">file system</property>
+          </object>
+          <packing>
+            <property name="tab_fill">False</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkVBox" id="waiting_files_vbox">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkToolbar" id="waiting_files_toolbar">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkToolButton" id="waiting_files_cancel">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">cancel</property>
+                    <property name="use_underline">True</property>
+                    <property name="stock_id">gtk-cancel</property>
+                    <signal name="clicked" handler="on_waiting_files_cancel_clicked" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkTreeView" id="waiting_files_tree_view">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="model">waiting_files_store</property>
+                <property name="enable_grid_lines">horizontal</property>
+                <child>
+                  <object class="GtkTreeViewColumn" id="waiting_files_type_column">
+                    <property name="title" translatable="yes">type</property>
+                    <child>
+                      <object class="GtkCellRendererPixbuf" id="waiting_files_type_cell">
+                        <property name="cell_background_gdk">#eeeee8e8aaaa</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn" id="waiting_files_file_name_column">
+                    <property name="title" translatable="yes">file name</property>
+                    <child>
+                      <object class="GtkCellRendererText" id="waiting_files_file_name_cell">
+                        <property name="background">#FFEFD5</property>
+                      </object>
+                      <attributes>
+                        <attribute name="text">1</attribute>
+                      </attributes>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn" id="waiting_files_size_column">
+                    <property name="title" translatable="yes">file size</property>
+                    <child>
+                      <object class="GtkCellRendererText" id="waiting_files_size_cell">
+                        <property name="background">#EEE8AA</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn" id="waiting_files_block_number_column">
+                    <property name="title" translatable="yes">block number</property>
+                    <child>
+                      <object class="GtkCellRendererText" id="waiting_files_block_number_cell">
+                        <property name="background">#FFEFD5</property>
+                      </object>
+                      <attributes>
+                        <attribute name="text">3</attribute>
+                      </attributes>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn" id="waiting_files_duplication_column">
+                    <property name="title" translatable="yes">duplication level</property>
+                    <child>
+                      <object class="GtkCellRendererText" id="waiting_files_duplication_cell">
+                        <property name="background">#EEE8AA</property>
+                      </object>
+                      <attributes>
+                        <attribute name="text">4</attribute>
+                      </attributes>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn" id="waiting_files_validation_column">
+                    <property name="title" translatable="yes">validation level</property>
+                    <child>
+                      <object class="GtkCellRendererText" id="waiting_files_validation_cell">
+                        <property name="background">#FFEFD5</property>
+                      </object>
+                      <attributes>
+                        <attribute name="text">5</attribute>
+                      </attributes>
+                    </child>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child type="tab">
+          <object class="GtkLabel" id="waiting_files_label">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="ypad">2</property>
+            <property name="label" translatable="yes">waiting files</property>
+          </object>
+          <packing>
+            <property name="position">1</property>
+            <property name="tab_fill">False</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkHPaned" id="file_status_hpaned">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="position">200</property>
+            <child>
+              <object class="GtkScrolledWindow" id="file_status_files_scrolled_window">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="hscrollbar_policy">automatic</property>
+                <property name="vscrollbar_policy">automatic</property>
+                <property name="shadow_type">out</property>
+                <child>
+                  <object class="GtkTreeView" id="file_status_files_tree_view">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="model">file_system_store</property>
+                    <property name="enable_grid_lines">horizontal</property>
+                    <signal name="cursor-changed" handler="on_file_status_files_tree_view_cursor_changed" swapped="no"/>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="file_status_file_name_column">
+                        <property name="title" translatable="yes">file name</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="file_status_files_cell">
+                            <property name="background">#EEE8AA</property>
+                          </object>
+                          <attributes>
+                            <attribute name="text">0</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="resize">False</property>
+                <property name="shrink">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkScrolledWindow" id="file_status_blocks_scrolled_window">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="hscrollbar_policy">automatic</property>
+                <property name="vscrollbar_policy">automatic</property>
+                <property name="shadow_type">out</property>
+                <child>
+                  <object class="GtkTreeView" id="file_status_blocks_tree_view">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="model">file_status_blocks_store</property>
+                    <property name="enable_grid_lines">horizontal</property>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="file_status_type_column">
+                        <property name="title" translatable="yes">type</property>
+                        <child>
+                          <object class="GtkCellRendererPixbuf" id="file_status_type_cell">
+                            <property name="cell_background">#EEE8AA</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="file_status_block_number_column">
+                        <property name="title" translatable="yes">number</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="file_status_block_number_cell">
+                            <property name="background">#FFEFD5</property>
+                          </object>
+                          <attributes>
+                            <attribute name="text">1</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="file_status_client_column">
+                        <property name="title" translatable="yes">client</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="file_status_client_cell">
+                            <property name="background">#EEE8AA</property>
+                          </object>
+                          <attributes>
+                            <attribute name="text">2</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="resize">True</property>
+                <property name="shrink">True</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child type="tab">
+          <object class="GtkLabel" id="file_status_label">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="ypad">2</property>
+            <property name="label" translatable="yes">file status</property>
+          </object>
+          <packing>
+            <property name="position">2</property>
+            <property name="tab_fill">False</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkVBox" id="clients_vbox">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkToolbar" id="clients_toolbar">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkToolButton" id="clients_reconstruct">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">reconstruct</property>
+                    <property name="use_underline">True</property>
+                    <property name="stock_id">gtk-clear</property>
+                    <signal name="clicked" handler="on_clients_reconstruct_clicked" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToolButton" id="clients_refresh">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">refresh</property>
+                    <property name="use_underline">True</property>
+                    <property name="stock_id">gtk-refresh</property>
+                    <signal name="clicked" handler="on_clients_refresh_clicked" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToolButton" id="clients_delete">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">delete</property>
+                    <property name="use_underline">True</property>
+                    <property name="stock_id">gtk-cancel</property>
+                    <signal name="clicked" handler="on_clients_delete_clicked" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkHPaned" id="clients_hpaned">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="position">400</property>
+                <child>
+                  <object class="GtkScrolledWindow" id="clients_clients_scrolled_window">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="hscrollbar_policy">automatic</property>
+                    <property name="vscrollbar_policy">automatic</property>
+                    <property name="shadow_type">out</property>
+                    <child>
+                      <object class="GtkTreeView" id="clients_clients_tree_view">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="model">clients_store</property>
+                        <property name="enable_grid_lines">horizontal</property>
+                        <signal name="cursor-changed" handler="on_clients_clients_tree_view_cursor_changed" swapped="no"/>
+                        <child>
+                          <object class="GtkTreeViewColumn" id="clients_client_column">
+                            <property name="title" translatable="yes">client</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="clients_client_cell">
+                                <property name="background">#EEE8AA</property>
+                              </object>
+                              <attributes>
+                                <attribute name="text">0</attribute>
+                              </attributes>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn" id="clients_disk_state_column">
+                            <property name="min_width">70</property>
+                            <property name="title" translatable="yes">disk state</property>
+                            <child>
+                              <object class="GtkCellRendererProgress" id="clients_disk_state_cell">
+                                <property name="cell_background">#FFEFD5</property>
+                                <property name="width">70</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn" id="clients_total_space_column">
+                            <property name="title" translatable="yes">total space</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="clients_total_space_cell">
+                                <property name="background">#EEE8AA</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn" id="clients_used_space_column">
+                            <property name="title" translatable="yes">used space</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="clients_used_space_cell">
+                                <property name="background">#FFEFD5</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn" id="clients_free_space_column">
+                            <property name="title" translatable="yes">free space</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="clients_free_space_cell">
+                                <property name="background">#EEE8AA</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="resize">False</property>
+                    <property name="shrink">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkScrolledWindow" id="clients_blocks_scrolled_window">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="hscrollbar_policy">automatic</property>
+                    <property name="vscrollbar_policy">automatic</property>
+                    <property name="shadow_type">out</property>
+                    <child>
+                      <object class="GtkTreeView" id="clients_blocks_tree_view">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="model">clients_blocks_store</property>
+                        <property name="enable_grid_lines">horizontal</property>
+                        <child>
+                          <object class="GtkTreeViewColumn" id="clients_blocks_type_column">
+                            <property name="spacing">2</property>
+                            <property name="title" translatable="yes">type</property>
+                            <child>
+                              <object class="GtkCellRendererPixbuf" id="clients_blocks_type_cell">
+                                <property name="cell_background">#EEE8AA</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn" id="clients_blocks_file_name_columns">
+                            <property name="title" translatable="yes">file name</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="clients_blocks_file_name_cell">
+                                <property name="background">#FFEFD5</property>
+                              </object>
+                              <attributes>
+                                <attribute name="text">1</attribute>
+                              </attributes>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn" id="clients_blocks_block_number_column">
+                            <property name="title" translatable="yes">number</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="clients_blocks_block_number_cell">
+                                <property name="background">#EEE8AA</property>
+                              </object>
+                              <attributes>
+                                <attribute name="text">2</attribute>
+                              </attributes>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="resize">True</property>
+                    <property name="shrink">True</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="position">3</property>
+          </packing>
+        </child>
+        <child type="tab">
+          <object class="GtkLabel" id="clients_label">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="ypad">2</property>
+            <property name="label" translatable="yes">clients</property>
+          </object>
+          <packing>
+            <property name="position">3</property>
+            <property name="tab_fill">False</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>
