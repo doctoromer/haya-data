@@ -47,17 +47,19 @@ to implement a file-like object. This will make it possible to incorporate
 the system into other project, and make it truly usable.
 
 This means that The distribution and restoration module basically stays the same.
-I want to entirly change the inter-thread communication, get rid of the ugly
+I want to entirely change the inter-thread communication, get rid of the ugly
 queue based messaging.
 
 Next, I want to add a hooks framework, that will allow the developer to add custom callbacks.
 After I will add the hooks, I will decouple the GUI from the rest of the system.
 
 This changes are basically means transforming the system into a generic library,
-and then add the GUI as a spereated frontend.
+and then add the GUI as a separated frontend.
 
 ##### Change the reconstruction process
-TODO
+I want to entirely rewrite the reconstruction thread. Instead of global reconstruction thread,
+There will be a reconstruction thread per file. A global system reconstruction will be just
+starting a reconstruction thread to each file in the storage.
 
 ### Thanks
-TODO
+I owe a big thanks to Merry Geva and Eran Feri, my teachers, that helped me all the way to the end.
