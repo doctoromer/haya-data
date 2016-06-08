@@ -8,6 +8,7 @@ import socket
 import threading
 import logging
 import select
+import cStringIO as StringIO
 
 import protocol
 import protocol.thread
@@ -126,20 +127,24 @@ class NetworkReceiverThread(threading.Thread):
                     # if this is a part of a message that alreay begun to send,
                     # add it to the messages dict
                     if s in self.messages:
-                        content, missing_bytes = self.messages[s]
+                        buff, missing_bytes = self.messages[s]
                         received = self.receive(s, missing_bytes)
 
-                        content += received
+                        buff.write(received)
                         missing_bytes -= len(received)
 
-                        self.messages[s] = content, missing_bytes
+                        self.messages[s] = buff, missing_bytes
                         # if no bytes are missing, the message is received
                         # pass it to the logic thread, and remove from queue
                         if missing_bytes == 0:
+
+                            content = buff.getvalue()
+                            buff.close()
                             message = protocol.thread.received(
                                 message=content, client=s.getpeername()[0])
                             self.logic_queue.put(message)
                             del self.messages[s]
+
                             self.logger.debug(
                                 'received a message from %s: %s...'
                                 % (s.getpeername()[0], repr(content[:5])))
@@ -156,7 +161,7 @@ class NetworkReceiverThread(threading.Thread):
                         # if connection is closed, remove it
                         if size_str != '':
                             size = protocol.get_size(size_str)
-                            self.messages[s] = ('', size)
+                            self.messages[s] = (StringIO.StringIO(), size)
                             self.logger.debug('new message of size %s' % size)
 
         self.server.close()
