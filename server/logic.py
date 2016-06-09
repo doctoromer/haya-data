@@ -196,7 +196,7 @@ class LogicThread(threading.Thread):
                                       block_size=block_size,
                                       duplication_level=duplication,
                                       validation_level=validation,
-                                      clients=self.clients,
+                                      clients=list(self.clients),
                                       distribute_queue=distribute_queue,
                                       key=key,
                                       logic_queue=self.logic_queue)
@@ -362,6 +362,20 @@ class LogicThread(threading.Thread):
         ip = received['client']
         if ip in self.clients:
             self.clients.remove(ip)
+
+        failed_files = ''
+        message = protocol.thread.exit()
+        for ident in self.running_threads:
+            thread = self.running_threads[ident]
+            if thread['thread_type'] == 'distribute':
+                thread['queue'].put(message)
+                failed_files += thread['name'] + ', '
+
+        failed_files = failed_files[:-2]
+        error_message = protocol.thread.error(
+            thread_id=None,
+            message='failed distributing files: %s' % failed_files)
+        self.gui_queue.put(error_message)
 
         # update the client view
         self.update_client_state()

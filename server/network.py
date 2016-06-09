@@ -204,6 +204,7 @@ class NetworkSenderThread(threading.Thread):
 
         self.running = True
 
+    @handle_except('network')
     def send(self, sock, message):
         """
         Send a message a client.
@@ -243,8 +244,11 @@ class NetworkSenderThread(threading.Thread):
                 if client == '*':
                     for ip in self.sockets:
                         self.send(self.sockets[ip], net_message)
-                else:
+                elif client in self.sockets:
                     self.send(self.sockets[client], net_message)
+                else:
+                    self.logger.warning(
+                        'there is no client %s, can\'t send message' % client)
 
             # add new socket to the list
             elif message_type == 'new_socket':
