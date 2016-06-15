@@ -196,6 +196,9 @@ class RestoreThread(threading.Thread):
             except:
                 self.logger.debug('waiting for blocks...')
             else:
+                # if received a massage, reset timeout
+                start_time = time.time()
+
                 message_type = message['type']
                 self.logger.debug(
                     'received message of type \'%s\'' % message_type)
