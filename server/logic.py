@@ -360,13 +360,14 @@ class LogicThread(threading.Thread):
         """
         # remove client from the clients list
         ip = received['client']
+        self.logger.info('client %s disconnected' % ip)
         if ip in self.clients:
             self.clients.remove(ip)
 
         # a generator object for all distribute threads
-        distribute_threads = (thread for ident, thread
+        distribute_threads = [thread for ident, thread
                               in self.running_threads
-                              if thread['thread_type'] == 'distribute')
+                              if thread['thread_type'] == 'distribute']
 
         if len(distribute_threads) != 0:
             failed_files = []
