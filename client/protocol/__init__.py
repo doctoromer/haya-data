@@ -12,11 +12,21 @@ Attributes:
 
 import msgpack
 import struct
+import zlib
 
 DATA_BLOCK = 'data'
 METADATA_BLOCK = 'metadata'
-parse = msgpack.loads
-build = msgpack.dumps
+
+
+def parse(message):
+    return msgpack.loads(zlib.decompress(message))
+
+
+def build(message):
+    return zlib.compress(msgpack.dumps(message))
+
+# parse = msgpack.loads
+# build = msgpack.dumps
 
 
 def __message(message_type, **kwargs):
