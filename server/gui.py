@@ -352,14 +352,6 @@ class Gui(object):
                     clients_store.set(
                         client_iter, 1, total, 2, total - free)
 
-        # if the message is 'lock_gui', lock the buttons.
-        elif message_type == 'lock_gui':
-            self.control_buttons(False)
-
-        # if the message is 'release_gui', release the buttons.
-        elif message_type == 'release_gui':
-            self.control_buttons(True)
-
         # if the message is 'error', display error message.
         elif message_type == 'error':
             self.display_error(message['message'])

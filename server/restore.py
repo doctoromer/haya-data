@@ -17,8 +17,10 @@ class RestoreThread(threading.Thread):
 
     Attributes:
         block_number (int): The number of the blocks in the file.
+        callback (func, optional): A callback to be called
+                after the thread finished
         clients (list of str): List of the clients.
-        key (TYPE): Description
+        key (str): The encryption key.
         logger (logging.Logger): The logger of the thread.
         logic_queue (Queue.Queue): The queue of the logic thread.
         real_file (str): The path that the file will be restored into.
@@ -39,20 +41,23 @@ class RestoreThread(threading.Thread):
                  key,
                  restore_queue,
                  logic_queue,
+                 callback=lambda: None,
                  temp='temp'):
         """
         Initialize the restore thread.
 
         Args:
             real_file (str): The path that the file will be restored into.
-            virtual_file (str): the name of the file in the virtual storage.
+            virtual_file (str): The name of the file in the virtual storage.
             block_number (int): The number of the blocks in the file.
             validation_level (int): The number of data block that each
                 metadata block is covering.
             clients (list of str): List of the clients.
-            key (TYPE): Description
+            key (str): The encryption key.
             restore_queue (Queue.Queue): The queue of the thread.
             logic_queue (Queue.Queue): The queue of the logic thread.
+            callback (func, optional): A callback to be called
+                after the thread finished
             temp (str, optional): The path of the temporary directory.
         """
         # initialize the thread class
@@ -76,6 +81,7 @@ class RestoreThread(threading.Thread):
         self.key = key
         self.restore_queue = restore_queue
         self.logic_queue = logic_queue
+        self.callback = callback
         self.temp = temp
 
     @handle_except('restore')
@@ -136,7 +142,11 @@ class RestoreThread(threading.Thread):
         return glob(self.temp, client, file_name)
 
     def exit_thread(self, success=True):
-        """Send exit message to the logic thread."""
+        """Send exit message to the logic thread.
+
+        Args:
+            success (bool, optional): Description
+        """
         map(os.remove, self.get_blocks_names())
 
         exit_message = protocol.thread.thread_exit(
@@ -411,4 +421,5 @@ class RestoreThread(threading.Thread):
             self.logic_queue.put(message)
 
         # executing exit operations
+        self.callback()
         self.exit_thread(success=not corrupted)
