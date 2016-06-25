@@ -19,7 +19,8 @@ def send(message, client='*'):
             }
 
 
-def distribute(file_path, block_size, duplication, validation):
+def distribute(
+        file_path, block_size, duplication, validation, callback=lambda: None):
     """
     Create distribute message.
 
@@ -36,11 +37,12 @@ def distribute(file_path, block_size, duplication, validation):
             'file_path': file_path,
             'block_size': block_size,
             'duplication': duplication,
-            'validation': validation
+            'validation': validation,
+            'callback': callback
             }
 
 
-def restore(real_file, virtual_file):
+def restore(real_file, virtual_file, callback=lambda: None):
     """
     Create restore message.
 
@@ -54,17 +56,21 @@ def restore(real_file, virtual_file):
     return {'type': 'restore',
             'real_file': real_file,
             'virtual_file': virtual_file,
+            'callback': callback
             }
 
 
-def reconstruct():
+def reconstruct(name, callback=lambda: None):
     """
     Create reconstruct message.
 
     Returns:
         dict: Reconstruct message.
     """
-    return {'type': 'reconstruct'}
+    return {'type': 'reconstruct',
+            'name': name,
+            'callback': callback
+            }
 
 
 def delete(virtual_file='*'):
@@ -286,26 +292,6 @@ def error(thread_id, message):
             'thread_id': thread_id,
             'message': message
             }
-
-
-def lock_gui():
-    """
-    Create lock_gui message.
-
-    Returns:
-        dict: Lock_gui message.
-    """
-    return {'type': 'lock_gui'}
-
-
-def release_gui():
-    """
-    Create release_gui message.
-
-    Returns:
-        dict: Release_gui message.
-    """
-    return {'type': 'release_gui'}
 
 
 def thread_exit(thread_id, success):

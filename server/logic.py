@@ -23,8 +23,6 @@ class LogicThread(threading.Thread):
         logger (logging.Logger): The logger of the thread.
         logic_queue (Queue.Queue): The queue of the logic thread.
         network_queue (Queue.Queue): The queue of the network thread.
-        reconstruct_queue (Queue.Queue): The queue of the reconstruct thread.
-        reconstruct_thread_id (int): The id of the reconstruct thread.
         running (bool): The flag of the main loop of the thread.
         running_threads (dict): Dict of the current running thread of
             type 'restore' or 'deistribute'. Described in more details in
@@ -49,10 +47,6 @@ class LogicThread(threading.Thread):
         self.logic_queue = logic_queue
         self.gui_queue = gui_queue
         self.network_queue = network_queue
-
-        # variables for the system reconstruct mechanism
-        self.reconstruct_queue = None
-        self.reconstruct_thread_id = None
 
         self.db_name = 'files.db'
         self.clients = []
@@ -122,9 +116,6 @@ class LogicThread(threading.Thread):
             threads=thread_list)
         self.gui_queue.put(message)
 
-        if self.reconstruct_queue is not None:
-            self.reconstruct_queue.put(message)
-
     def update_storage_state(self):
         """
         Triger the update of the interface.
@@ -186,21 +177,26 @@ class LogicThread(threading.Thread):
         block_size = received['block_size']
         duplication = received['duplication']
         validation = received['validation']
+        callback = received['callback']
+        self.logger.debug('distributing file %s' % file_path)
 
         # generate encryption key
         key = os.urandom(16)
         distribute_queue = Queue.Queue()
 
         # create the thread
-        distribute = DistributeThread(file_path=file_path,
-                                      block_size=block_size,
-                                      duplication_level=duplication,
-                                      validation_level=validation,
-                                      clients=list(self.clients),
-                                      distribute_queue=distribute_queue,
-                                      key=key,
-                                      logic_queue=self.logic_queue)
+        distribute = DistributeThread(
+            file_path=file_path,
+            block_size=block_size,
+            duplication_level=duplication,
+            validation_level=validation,
+            clients=list(self.clients),
+            distribute_queue=distribute_queue,
+            key=key,
+            logic_queue=self.logic_queue,
+            callback=callback)
         distribute.start()
+
         # calculate the number of blocks
         file_size = os.stat(file_path).st_size
         block_number = file_size / block_size
@@ -231,6 +227,7 @@ class LogicThread(threading.Thread):
         # get relevant parameters from the message of the db
         real_file = received['real_file']
         virtual_file = received['virtual_file']
+        callback = received['callback']
 
         db = database.Database(self.db_name)
         query = db.query(virtual_file)
@@ -247,7 +244,8 @@ class LogicThread(threading.Thread):
                                 clients=self.clients,
                                 key=key,
                                 restore_queue=restore_queue,
-                                logic_queue=self.logic_queue)
+                                logic_queue=self.logic_queue,
+                                callback=callback)
         restore.start()
         # add the thread to the list of the running threads
         self.add_running_thread(
@@ -269,38 +267,56 @@ class LogicThread(threading.Thread):
 
     def reconstruct(self, received):
         """
-        Triger system reconstruction.
+        Triger file reconstruction.
 
-        This method starts a thread that restores all the files,
-        delete them from the storage, and redistribute them.
-        This act clean the storage and repair all files that can
+        This method starts a thread that restores a file,
+        delete it from the storage, and redistribute it.
+        This act clean the storage and repair the file, if it can
         be repaired.
-
-        The reconstruction locks the gui to prevet the user to perform
-        actions the can currupt the process.
 
         Args:
             received (dict): The reconstruct message.
         """
+        name = received['name']
+        callback = received['callback']
+
         # query all records from the db
         db = database.Database(self.db_name)
-        records = db.query_all()
+        record = db.query(name)
         db.close()
-        self.reconstruct_queue = Queue.Queue()
 
-        # create the thread
-        reconstruct = ReconstructThread(
-            file_records=records,
-            reconstruct_queue=self.reconstruct_queue,
-            logic_queue=self.logic_queue
+        name, file_size, block_number,\
+            duplication, validation, key = record
+        block_size = file_size / block_number
+        if file_size % block_number != 0:
+            block_size += 1
+
+        reconstruct_queue = Queue.Queue()
+        thread = ReconstructThread(
+            virtual_file=name,
+            block_size=block_size,
+            duplication_level=duplication,
+            validation_level=validation,
+            clients=list(self.clients),
+            key=key,
+            reconstruct_queue=reconstruct_queue,
+            logic_queue=self.logic_queue,
+            callback=callback
         )
-        reconstruct.start()
 
-        self.reconstruct_thread_id = reconstruct.ident
+        thread.start()
 
-        # lock the gui
-        message = protocol.thread.lock_gui()
-        self.gui_queue.put(message)
+        self.add_running_thread(
+            thread_type='reconstruct',
+            ident=thread.ident,
+            name=name,
+            file_size=file_size,
+            block_number=block_number,
+            duplication_level=duplication,
+            validation_level=validation,
+            key=key,
+            queue=reconstruct_queue
+        )
 
     def delete(self, received):
         """
@@ -456,7 +472,7 @@ class LogicThread(threading.Thread):
         """
         Handle exit of a thread.
 
-        This method handles olny the exit of 'restore', 'distribute'
+        This method handles only the exit of 'restore', 'distribute'
         or 'reconstruct' threads, which start and exit during the lifetime
         of the program.
 
@@ -466,43 +482,32 @@ class LogicThread(threading.Thread):
         thread_id = received['thread_id']
 
         # if the thread is 'restore' or 'distribute'
-        if thread_id != self.reconstruct_thread_id:
-            thread_dict = self.running_threads[thread_id]
-            thread_type = thread_dict['thread_type']
+        thread_dict = self.running_threads[thread_id]
+        thread_type = thread_dict['thread_type']
 
-            # if the thread type is 'distribute', it means that the system
-            # finished distributing a file, then add it to the db
-            if thread_type == 'distribute':
-                if received['success']:
-                    record = (
-                        thread_dict['name'],
-                        thread_dict['file_size'],
-                        thread_dict['block_number'],
-                        thread_dict['duplication'],
-                        thread_dict['validation'],
-                        thread_dict['key']
-                    )
+        # if the thread type is 'distribute', it means that the system
+        # finished distributing a file, then add it to the db
+        if thread_type == 'distribute':
+            if received['success']:
+                record = (
+                    thread_dict['name'],
+                    thread_dict['file_size'],
+                    thread_dict['block_number'],
+                    thread_dict['duplication'],
+                    thread_dict['validation'],
+                    thread_dict['key']
+                )
 
-                    db = database.Database(self.db_name)
-                    db.insert(record)
-                    db.close()
+                db = database.Database(self.db_name)
+                db.insert(record)
+                db.close()
 
-                else:
-                    self_message = protocol.thread.delete(
-                        virtual_file=thread_dict['name'])
-                    self.delete(self_message)
+            else:
+                self_message = protocol.thread.delete(
+                    virtual_file=thread_dict['name'])
+                self.delete(self_message)
 
-            del self.running_threads[thread_id]
-
-        else:
-            # if the thread is the reconstruction thread,
-            # then remove it's thread_id and the queue
-            self.reconstruct_thread_id = None
-            self.reconstruct_queue = None
-
-            # release the gui
-            message = protocol.thread.release_gui()
-            self.gui_queue.put(message)
+        del self.running_threads[thread_id]
 
         self.update_storage_state()
         self.update_thread_list()

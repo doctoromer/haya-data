@@ -1,4 +1,5 @@
-"""The file distribution module."""
+"""The file distribution module.
+"""
 import os
 import threading
 import logging
@@ -10,10 +11,12 @@ import protocol
 
 
 class Validator(object):
-    """The validator class creates validation blocks."""
+    """The validator class creates validation blocks.
+    """
 
     def __init__(self):
-        """Initialize the validator class."""
+        """Initialize the validator class.
+        """
         self.__data = None
         self.__blocks = {}
 
@@ -33,7 +36,8 @@ class Validator(object):
         self.__blocks[number] = encrypt.hash_string(block_data)
 
     def reset(self):
-        """Reset the internal state of the validator."""
+        """Reset the internal state of the validator.
+        """
         self.__data = None
         self.__blocks = {}
 
@@ -57,6 +61,8 @@ class DistributeThread(threading.Thread):
 
     Attributes:
         block_size (int): The size of the blocks.
+        callback (func, optional): A callback to be called
+                after the thread finished
         clients (list of str): List of the clients.
         distribute_queue (Queue.Queue): The queue of the thread.
         duplication_level (int): How many times each block is duplicated.
@@ -75,7 +81,8 @@ class DistributeThread(threading.Thread):
                  clients,
                  key,
                  distribute_queue,
-                 logic_queue):
+                 logic_queue,
+                 callback=lambda: None):
         """
         Initialize the distribution thread.
 
@@ -88,6 +95,8 @@ class DistributeThread(threading.Thread):
             key (str): The encryption key.
             distribute_queue (Queue.Queue): The queue of the thread.
             logic_queue (Queue.Queue): The queue of the logic thread.
+            callback (func, optional): A callback to be called
+                after the thread finished
             metadata block is covering.
         """
         # initialize the thread class
@@ -105,6 +114,7 @@ class DistributeThread(threading.Thread):
         self.key = key
         self.distribute_queue = distribute_queue
         self.logic_queue = logic_queue
+        self.callback = callback
 
     def send_block(self, client, block_type, name, number, content):
         """
@@ -113,7 +123,7 @@ class DistributeThread(threading.Thread):
         Args:
             client (str): The client ip address.
             block_type (str): The type of the block.
-            name (TYPE): Description
+            name (str): The name of the file
             number (int): The number of the block.
             content (str): The content of the block.
         """
@@ -132,7 +142,11 @@ class DistributeThread(threading.Thread):
         self.logic_queue.put(message)
 
     def exit_thread(self, success=True):
-        """Send exit message to the logic thread."""
+        """Send exit message to the logic thread.
+
+        Args:
+            success (bool, optional): Description
+        """
         exit_message = protocol.thread.thread_exit(
             thread_id=self.ident, success=success)
         self.logic_queue.put(exit_message)
@@ -148,7 +162,9 @@ class DistributeThread(threading.Thread):
         if not os.path.exists(self.file_path):
             self.logger.error('file doesn\'t exist. exiting...')
             message = protocol.thread.error(
-                message='file \'%s\' doesn\'t exist, distribution failed')
+                thread_id=self.ident,
+                message='file \'%s\' doesn\'t exist, distribution failed'
+                % self.file_path)
             self.logic_queue.put(message)
             self.exit_thread()
             return
@@ -252,4 +268,5 @@ class DistributeThread(threading.Thread):
         # executing exit operations
         target_file.close()
 
+        self.callback()
         self.exit_thread()

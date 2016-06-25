@@ -189,6 +189,8 @@ class Gui(object):
                 stock_id = gtk.STOCK_GO_UP
             elif value == 'restore':
                 stock_id = gtk.STOCK_GO_DOWN
+            elif value == 'reconstruct':
+                stock_id = gtk.STOCK_CLEAR
             else:
                 stock_id = gtk.STOCK_CANCEL
 
@@ -608,7 +610,10 @@ class Gui(object):
         response = dialog.run()
         dialog.destroy()
         if response == -8:
-            self.logic_queue.put(protocol.thread.reconstruct())
+            file_system_store = self.builder.get_object('file_system_store')
+            for row in file_system_store:
+                name = row[0]
+                self.logic_queue.put(protocol.thread.reconstruct(name=name))
 
     @handle_except('gui')
     def clients_refresh_clicked(self, widget, data=None):
