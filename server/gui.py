@@ -110,22 +110,22 @@ class Gui(object):
                 self.file_system_download_clicked,
             'on_file_system_upload_clicked':
                 self.file_system_upload_clicked,
-            'on_file_system_delete_clicked':
-                self.file_system_delete_clicked,
             'on_upload_window_delete_event':
                 self.upload_window_delete_event,
             'on_upload_ok_button_clicked':
                 self.upload_ok_button_clicked,
             'on_upload_cancel_button_clicked':
                 self.upload_cancel_button_clicked,
+            'on_file_system_reconstruct_clicked':
+                self.file_system_reconstruct_clicked,
+            'on_file_system_delete_clicked':
+                self.file_system_delete_clicked,
             'on_waiting_files_cancel_clicked':
                 self.waiting_files_cancel_clicked,
             'on_file_status_files_tree_view_cursor_changed':
                 self.file_status_callback,
             'on_clients_clients_tree_view_cursor_changed':
                 self.clients_callback,
-            'on_clients_reconstruct_clicked':
-                self.clients_reconstruct_clicked,
             'on_clients_refresh_clicked':
                 self.clients_refresh_clicked,
             'on_clients_delete_clicked':
@@ -509,6 +509,21 @@ class Gui(object):
         self.hide_upload_window()
 
     @handle_except('gui')
+    def file_system_reconstruct_clicked(self, widget, data=None):
+        """
+        Start a reconstruction thread.
+
+        Args:
+            widget (gtk.Widget): The widget that fired the event
+            data (object, optional): Additional data.
+        """
+        file_system_tree_view = self.builder.get_object(
+            'file_system_tree_view')
+        name = get_selection(file_system_tree_view, 0)
+        if name is not None:
+            self.logic_queue.put(protocol.thread.reconstruct(name=name))
+
+    @handle_except('gui')
     def file_system_delete_clicked(self, widget, data=None):
         """
         Delete a file from the storage.
@@ -585,27 +600,6 @@ class Gui(object):
                                 block['name'],
                                 int(block['number']))
                 store.append(None, block_record)
-
-    @handle_except('gui')
-    def clients_reconstruct_clicked(self, widget, data=None):
-        """
-        Start a reconstruction thread.
-
-        Args:
-            widget (gtk.Widget): The widget that fired the event
-            data (object, optional): Additional data.
-        """
-        dialog = gtk.MessageDialog(
-            type=gtk.MESSAGE_QUESTION, buttons=gtk.BUTTONS_YES_NO)
-        dialog.set_markup(
-            'Are you sure? System reconstruction may take some time.')
-        response = dialog.run()
-        dialog.destroy()
-        if response == -8:
-            file_system_store = self.builder.get_object('file_system_store')
-            for row in file_system_store:
-                name = row[0]
-                self.logic_queue.put(protocol.thread.reconstruct(name=name))
 
     @handle_except('gui')
     def clients_refresh_clicked(self, widget, data=None):
