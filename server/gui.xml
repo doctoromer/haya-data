@@ -9,7 +9,7 @@
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
-  <object class="GtkTreeStore" id="clients_blocks_store">
+  <object class="GtkListStore" id="clients_blocks_store">
     <columns>
       <!-- column-name type -->
       <column type="gchararray"/>
@@ -19,7 +19,7 @@
       <column type="gint"/>
     </columns>
   </object>
-  <object class="GtkTreeStore" id="clients_store">
+  <object class="GtkListStore" id="clients_store">
     <columns>
       <!-- column-name client -->
       <column type="gchararray"/>
@@ -36,7 +36,7 @@
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
-  <object class="GtkTreeStore" id="file_status_blocks_store">
+  <object class="GtkListStore" id="file_status_blocks_store">
     <columns>
       <!-- column-name type -->
       <column type="gchararray"/>
@@ -46,7 +46,7 @@
       <column type="gchararray"/>
     </columns>
   </object>
-  <object class="GtkTreeStore" id="file_system_store">
+  <object class="GtkListStore" id="file_system_store">
     <columns>
       <!-- column-name file_name -->
       <column type="gchararray"/>
@@ -245,7 +245,7 @@
       </object>
     </child>
   </object>
-  <object class="GtkTreeStore" id="waiting_files_store">
+  <object class="GtkListStore" id="waiting_files_store">
     <columns>
       <!-- column-name type -->
       <column type="gchararray"/>

@@ -297,7 +297,7 @@ class Gui(object):
             file_system_store = self.builder.get_object('file_system_store')
             file_system_store.clear()
             for f in files:
-                file_system_store.append(None, f)
+                file_system_store.append(f)
 
         # if the message is 'thread_list', update the gui.
         elif message_type == 'thread_list':
@@ -312,7 +312,7 @@ class Gui(object):
                 record = (thread['thread_type'], thread['name'],
                           thread['file_size'], thread['block_number'],
                           thread['duplication'], thread['validation'])
-                waiting_files_store.append(None, record)
+                waiting_files_store.append(record)
 
         # if the message is 'storage_state', update the display
         elif message_type == 'storage_state':
@@ -334,7 +334,7 @@ class Gui(object):
             self.control_buttons(buttons_state)
 
             for client in clients:
-                clients_store.append(None, (client, 0, 0))
+                clients_store.append((client, 0, 0))
             self.block_dict = {
                 k: v for k, v in self.block_dict.iteritems() if k in clients}
 
@@ -574,9 +574,9 @@ class Gui(object):
         for client in self.block_dict:
             for block in self.block_dict[client]:
                 if block['name'] == selection:
-                    store.append(None, (block['block_type'],
-                                        int(block['number']),
-                                        client))
+                    store.append((block['block_type'],
+                                  int(block['number']),
+                                  client))
 
     @handle_except('gui')
     def clients_callback(self, widget, data=None):
@@ -599,7 +599,7 @@ class Gui(object):
                 block_record = (block['block_type'],
                                 block['name'],
                                 int(block['number']))
-                store.append(None, block_record)
+                store.append(block_record)
 
     @handle_except('gui')
     def clients_refresh_clicked(self, widget, data=None):
