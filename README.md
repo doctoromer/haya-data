@@ -56,10 +56,5 @@ After I will add the hooks, I will decouple the GUI from the rest of the system.
 This changes are basically means transforming the system into a generic library,
 and then add the GUI as a separated frontend.
 
-##### Change the reconstruction process
-I want to entirely rewrite the reconstruction thread. Instead of global reconstruction thread,
-There will be a reconstruction thread per file. A global system reconstruction will be just
-starting a reconstruction thread to each file in the storage.
-
 ### Thanks
 I owe a big thanks to Merry Geva and Eran Feri, my teachers, that helped me all the way to the end.
